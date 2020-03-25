@@ -9,6 +9,10 @@ import argparse
 import sys
 
 
+def dirwatcher():
+
+
+
 def create_parser(*args, **kwargs):
     """Defines and provides help for commandline arguments"""
     parser = argparse.ArgumentParser(
@@ -26,6 +30,7 @@ def create_parser(*args, **kwargs):
 
 def main():
     args = create_parser()
+    
 
 
 if __name__ == "__main__":
