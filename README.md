@@ -1,20 +1,21 @@
-# dirwatcher
+# Dirwatcher
 Long running program that monitors a directory's text files.
 
-Dirwatcher
+## Objective:
 
-Long Running Program with signal handling and logging
+-Create a long running program
 
-Objective:
+-Demonstrate signal handling
 
-Create a long running program
-Demonstrate signal handling
-Demonstrate program logging
-Use exception handling to keep the program running
-Create and structure your own code repository using best practices
-Show that you know how to read a set of requirements and deliver on them, asking for clarification if anything is unclear.
+-Demonstrate program logging
 
-Goal
+-Use exception handling to keep the program running
+
+-Create and structure your own code repository using best practices
+
+-Show that you know how to read a set of requirements and deliver on them, asking for clarification if anything is unclear.
+
+## Goal
 
 For this assessment you will create your own small long-running program named dirwatcher.py. This will give you experience in structuring a long-running program, which will help you with the SlackTweet project later on. The dirwatcher.py program should accept some command line arguments that will instruct it to monitor a given directory for text files that are created within the monitored directory. Your dirwatcher.py program will continually search within all files in the directory for a 'magic' string which is provided as a command line argument. This can be implemented with a timed polling loop. If the magic string is found in a file, your program should log a message indicating which file and line number the magic text was found. Once a magic text occurrence has been logged, it should not be logged again unless it appears in the file as another subsequent line entry later on.
 
@@ -22,22 +23,33 @@ Files in the monitored directory may be added or deleted or appended at any time
 
 Your program should terminate itself by catching SIGTERM or SIGINT (be sure to log a termination message). The OS will send a signal event to processes that it wants to terminate from the outside. Think about when a sys admin wants to shutdown the entire computer for maintenance with a sudo shutdown command. If your process has open file handles, or is writing to disk, or is managing other resources, this is the OS way of telling your program that you need to cleanup, finish any writes in progress, and release resources before shutting down.
 
-NOTE that handling OS signals and polling the directory that is being watched are two separate functions of your program. You won't be getting an OS signal when files are created or deleted. Success Criteria
+NOTE that handling OS signals and polling the directory that is being watched are two separate functions of your program. You won't be getting an OS signal when files are created or deleted. 
 
-Use all best-practices that have been taught so far: docstrings, PEP8, unit tests, clean and readable code and meaningful commit messages.
-Have a demonstrable OS signal handler
-Log messages for files with magic text
-Handle and log different exceptions such as file-not-found, directory-not-exist as well as handle and report top-level unknown exceptions so that your program stays alive.
-Include a startup and shutdown banner in your logs and report the total runtime (uptime) within your shutdown log banner.  Please see the hints below if you don't understand what a logging banner is.
-READ THE RUBRIC.
+## Success Criteria
 
-Hints
+-Use all best-practices that have been taught so far: docstrings, PEP8, unit tests, clean and readable code and meaningful commit messages.
 
-import signal exit_flag = False
+-Have a demonstrable OS signal handler
 
-def signal_handler(sig_num, frame): """ This is a handler for SIGTERM and SIGINT. Other signals can be mapped here as well (SIGHUP?) Basically it just sets a global flag, and main() will exit it's loop if the signal is trapped. :param sig_num: The integer signal number that was trapped from the OS. :param frame: Not used :return None """ # log the associated signal name (the python3 way) logger.warn('Received ' + signal.Signals(sig_num).name) # log the signal name (the python2 way) signames = dict((k, v) for v, k in reversed(sorted(signal.dict.items())) if v.startswith('SIG') and not v.startswith('SIG_')) logger.warn('Received ' + signames[sig_num]) exit_flag = True
+-Log messages for files with magic text
 
-def main(): # Hook these two signals from the OS .. signal.signal(signal.SIGINT, signal_handler) signal.signal(signal.SIGTERM, signal_handler) # Now my signal_handler will get called if OS sends either of these to my process.
+-Handle and log different exceptions such as file-not-found, directory-not-exist as well as handle and report top-level unknown exceptions so that your program stays alive.
+
+-Include a startup and shutdown banner in your logs and report the total runtime (uptime) within your shutdown log banner.  Please see the hints below if you don't understand what a logging banner is.
+
+### READ THE RUBRIC.
+
+## Hints
+
+-import signal exit_flag = False
+
+- def signal_handler(sig_num, frame): """ This is a handler for SIGTERM and SIGINT. Other signals can be mapped here as well (SIGHUP?) Basically it just sets a global flag, and main() will exit it's loop if the signal is trapped. :param sig_num: The integer signal number that was trapped from the OS. 
+
+:param frame: Not used 
+
+:return None """ # log the associated signal name (the python3 way) logger.warn('Received ' + signal.Signals(sig_num).name) # log the signal name (the python2 way) signames = dict((k, v) for v, k in reversed(sorted(signal.dict.items())) if v.startswith('SIG') and not v.startswith('SIG_')) logger.warn('Received ' + signames[sig_num]) exit_flag = True
+
+-def main(): # Hook these two signals from the OS .. signal.signal(signal.SIGINT, signal_handler) signal.signal(signal.SIGTERM, signal_handler) # Now my signal_handler will get called if OS sends either of these to my process.
 
 while not exit_flag:
     try:
@@ -49,11 +61,11 @@ while not exit_flag:
     # put a sleep inside my while loop so I don't peg the cpu usage at 100%
     time.sleep(polling_interval)
 
-# final exit point happens here
-# Log a message that we are shutting down
-# Include the overall uptime since program start.
+#### final exit point happens here
+#### Log a message that we are shutting down
+#### Include the overall uptime since program start.
 
-More hints
+##More hints
 
 Create a versatile command line argument parser that can handle these options
 
@@ -62,7 +74,7 @@ An argument that specifics the magic text to search for, instead of hard-coding 
 An argument that filters what kind of file extension to search within, such as `.txt` or `.log`
 Argument to specify the directory to watch.  This directory may not yet exist!
 
-DOs and DON'Ts
+### DOs and DON'Ts
 
 DON'T use a strategy where you are counting the number of files in the directory, and then reporting files added or deleted if the count increases or decreases. Why Not? What if your polling interval is long, and one file gets replaced by another with a different name? The file count will still be the same, but you will miss tracking the new file.
 
@@ -80,27 +92,35 @@ DO break up your code into small functions such as scan_single_file() and detect
 
 DO Read the attached Rubric as your key to maximizing points. Many students will submit their projects without reading the rubric points. Don't be that person. How do I test this??
 
-Testing Program Operation
+## Testing Program Operation
 
 Test your dirwatcher program using TWO terminal windows. In the first window, start your Dirwatcher with various sets of command line arguments. Open a second terminal window and navigate to the same directory where your Dirwatcher is running, and try these procedures:
 
 Run Dirwatcher with non-existent directory -- Every polling interval, it should complain about the missing watch directory.
+
 Create the watched directory with mkdir -- Dirwatcher should stop complaining.
+
 Add an empty file with target extension to the watched directory -- Dirwatcher should report a new file added.
+
 Append some magic text to first line of the empty file -- Dirwatcher should report that some magic text was found on line 1, only once.
+
 Append a few other non-magic text lines to the file and then another line with two or more magic texts -- Dirwatcher should correctly report the line number just once (don't report previous line numbers)
+
 Add a file with non-magic extension and some magic text -- Dirwatcher should not report anything
 Delete the file containing the magic text -- Dirwatcher should report the file as removed, only once.
+
 Remove entire watched directory -- Dirwatcher should revert to complaining about a missing watch directory, every polling interval.
 
-Testing the Signal Handler
+## Testing the Signal Handler
 
 To test the OS signal handler part of your Dirwatcher, send a SIGTERM to your program from a separate shell window.
 
-While your Dirwatcher is running, open a new shell terminal.
-Find the process id (PID) of your dirwatcher.  PID is the first column listed from the ps utility.
+-While your Dirwatcher is running, open a new shell terminal.
+
+-Find the process id (PID) of your dirwatcher.  PID is the first column listed from the ps utility.
 Send a SIGTERM to your Dirwatcher
-Your signal handler within your python program should be called.  Your code should exit gracefully with a Goodbye message ...
+
+-Your signal handler within your python program should be called.  Your code should exit gracefully with a Goodbye message ...
 
 Example: How to shutdown your program
 
@@ -113,31 +133,31 @@ Stopped dirwatcher.py Uptime was 0:33:39.316367
 How robust is your exception handler?
 
 Will your long running program fail if the directory under watch is suddenly deleted? If your watcher is pointed at another program's logging directory (which may come or go under different circumstances), you may want to add an exception handler and do some longer-duration retries instead of bailing out. Perhaps you could retry the directory every 5 seconds. Once you have a valid directory, you could do the file polling every 1 second. This would require an outer loop and an inner loop.
-Credits
 
-This assignment was inspired by the story of The Cuckoo's Egg (Links to an external site.)Links to an external site. Rubric Dirwatcher Rubric Dirwatcher Rubric Criteria Ratings Pts This criterion is linked to a Learning Outcome Cmd Line Arguments
+## Credits
+
+This assignment was inspired by the story of The Cuckoo's Egg (Links to an external site.)Links to an external site. 
+
+## Rubric Dirwatcher Rubric Dirwatcher Rubric 
+
+Criteria Ratings Pts 
+
+-This criterion is linked to a Learning Outcome Cmd Line Arguments
 
 3.0 pts Full Marks Program should accept cmd line arguments for directory to watch (dir), file extension to filter on (ext), polling interval (int) and magic text (magic). Polling interval defaults to 1.0 seconds. If the target watch directory does not exist, program should log an appropriate event message for each interval, e.g. "directory XXXXX does not exist"
-
-0.0 pts No Marks
 
 3.0 pts This criterion is linked to a Learning Outcome Magic text detection
 
 4.0 pts Full Marks The program must actually run, instead of failing instantly due to cmd line argument problems. Magic text sequences are detected within files. Detection events are logged to STDOUT, with file name and line numbers. If a line contains multiple magic strings, only one message is logged. Any previously detected magic text should not be logged again.
 
-0.0 pts No Marks
-
 4.0 pts This criterion is linked to a Learning Outcome OS Signal Handler
 
 2.0 pts Full Marks Program should respond to SIGINT and SIGTERM signals from the OS. signal events should be logged so that a human can determine what the signal was. Program should terminate upon either signal.
-
-0.0 pts No Marks
 
 2.0 pts This criterion is linked to a Learning Outcome Exception Handler
 
 2.0 pts Full Marks The program should have one or more exception (try/except) handlers. Program should stay running even if the entire watched directory is suddenly deleted. Also Stay running if a watched file is deleted. Log an appropriate event message in these cases.
 
-0.0 pts No Marks
 
 2.0 pts This criterion is linked to a Learning Outcome Logging
 
@@ -145,12 +165,7 @@ This assignment was inspired by the story of The Cuckoo's Egg (Links to an exter
 
     Use the python built-in logging module, not print statements. - All log messages should contain timestamps. - Events to log are startup BANNER, shutdown BANNER, exceptions, magic text found events, files added or removed from watched dir, and OS signal events. - Log messages to STDOUT, not to a file. - ONLY ONE termination (exit) point for the program. That is, no sys.exit(1) embedded in a function somewhere.
 
-0.0 pts No Marks
 
 4.0 pts This criterion is linked to a Learning Outcome Repo
 
 5.0 pts Full Marks Use previously cloned repos as examples: Your Repo must have a .gitignore file. Repo shall not contain any log files, or test directories or test files. or .vscode folder, or stray .pyc or .DS_Store files. Note however: Unittest directories and files are allowed but not required. Repo shall not contain a virtual environment. Repo MUST have a descriptive README.md that explains what the program does, and and its configuration and runtime options. Source code should have docstrings, author header and pass all PEP8 (flake8) tests. Any meaningless commit messages such as "Done", "Finished", "Completed", "Debugged Code", "fixed bug", "asdf", "blah" and the like, shall be awarded negative points.
-
-0.0 pts No Marks
-
-5.0 pts
