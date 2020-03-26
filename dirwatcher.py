@@ -8,6 +8,7 @@ __author__ = "knmarvel"
 import argparse
 import sys
 import os
+from pathlib import Path
 
 
 def check_for_string(magic, search_dir, file_type):
@@ -20,9 +21,9 @@ def check_for_string(magic, search_dir, file_type):
                         file = file.read().splitlines()
                         for line in file:
                             if magic in line:
-                                files_with_magic.append(
-                                    [filename, file.index(line)])
-    return len(files_with_magic) > 0
+                                path = Path(filename).parent.absolute()
+                                files_with_magic.append([str(path), file.index(line)])
+    return files_with_magic
 
 
 def dirwatcher(interval, magic, search_dir, file_type):
