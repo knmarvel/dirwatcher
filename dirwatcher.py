@@ -24,14 +24,36 @@ def check_for_magic(magic, search_dir, file_type):
             if filename.endswith(file_type):
                 with open(root + "/" + filename, "r") as file:
                     file = file.read().splitlines()
-                    for line in file:
+                    for counter, line in enumerate(file):
                         if magic in line:
                             if filename in f_w_magic:
-                                if f_w_magic[filename] < file.index(line):
-                                    f_w_magic[filename] = file.index(line)
+                                if f_w_magic[filename] < counter:
+                                    f_w_magic[filename] = counter
                             else:
-                                f_w_magic[filename] = file.index(line)
+                                f_w_magic[filename] = counter
     return f_w_magic
+
+
+def check_for_add(new_files):
+    """Prints a statement about files added with magic text
+    or files with magic text appended at a later line"""
+    global old_files
+    for file in new_files:
+        if file in old_files:
+            if new_files[file] > old_files[file]:
+                print("Magic text found in later line in file",
+                      file, " at line ", new_files[file])
+        else:
+            print("New file", file, "found with magic text at line ",
+                  new_files[file])
+
+
+def check_for_delete(new_files):
+    """Prints a delete statement if a file with magic text is deleted."""
+    global old_files
+    for file in old_files:
+        if file not in new_files:
+            print("File", file, "deleted")
 
 
 def print_difference(new_files):
@@ -39,17 +61,8 @@ def print_difference(new_files):
     found files and prints any differences"""
     global old_files
     if new_files != old_files:
-        for file in new_files:
-            if file in old_files:
-                if new_files[file] != old_files[file]:
-                    print("Magic text found in later line in file",
-                          file, " at line ", new_files[file])
-            else:
-                print("New file", file, "found with magic text at line ",
-                      new_files[file])
-        for file in old_files:
-            if file not in new_files:
-                print("File", file, "deleted")
+        check_for_add(new_files)
+        check_for_delete(new_files)
         old_files = new_files
 
 
@@ -77,6 +90,7 @@ def display_end_banner():
 
 def dirwatcher(interval, magic, search_dir, file_type):
     running = True
+    counter = 0
 
     display_start_banner(interval, magic, search_dir, file_type)
 
@@ -87,16 +101,18 @@ def dirwatcher(interval, magic, search_dir, file_type):
                 print_difference(new_files)
             else:
                 print("No such directory.")
+            counter += 1
+            if not counter % 5:
+                print(f"we've run {counter} cycles.")
             time.sleep(interval)
             continue
-        except KeyboardInterrupt as ki:
-            print("Stopped: ", repr(ki))
+        except Exception as e:
+            print("Stopped: ", repr(e))
             display_end_banner()
             running = False
-        except EOFError as eofe:
-            print("Stopped: ", repr(eofe))
-            display_end_banner()
-            running = False
+        
+        #### final exit point happens here
+        #### Log a message that we are shutting down
 
 
 def create_parser(*args, **kwargs):
