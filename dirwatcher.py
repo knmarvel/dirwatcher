@@ -1,15 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""An enhanced version of the 'echo' cmd line utility"""
+"""Long running program that monitors a directory's text files."""
 
 __author__ = "knmarvel"
 
 
 import argparse
-import os
-import time
 import datetime
+import os
 import signal
+import sys
+import time
+
+if sys.version_info[0] != 3:
+    raise Exception("This program requires python3 interpreter")
+
 
 old_files = {}
 
