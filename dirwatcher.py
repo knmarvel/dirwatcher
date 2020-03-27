@@ -7,9 +7,9 @@ __author__ = "knmarvel"
 
 import argparse
 import os
+import time
 
 old_files = {}
-new_files = {}
 
 
 def check_for_magic(magic, search_dir, file_type):
@@ -34,8 +34,62 @@ def check_for_magic(magic, search_dir, file_type):
     return f_w_magic
 
 
+def print_difference(new_files):
+    """checks dictionary of currently found files against previously
+    found files and prints any differences"""
+    global old_files
+    if new_files != old_files:
+        for file in new_files:
+            if file in old_files:
+                if new_files[file] != old_files[file]:
+                    print("Magic text found in later line in file",
+                          file, " at line ", new_files[file])
+            else:
+                print("New file", file, "found with magic text at line ",
+                      new_files[file])
+        for file in old_files:
+            if file not in new_files:
+                print("File", file, "deleted")
+        old_files = new_files
+
+
+def display_start_banner(interval, magic, search_dir, file_type):
+    title_text = "Welcome to Kano's dirwatcher"
+    line1 = f'Every {interval} seconds, dirwatcher will tell you if'
+    line2 = f' "{magic}" is in any {file_type} files in directory "{search_dir}"'
+    spaced_text = ' %s ' % title_text
+    print(spaced_text.center(100, "="))
+    print((line1 + line2).center(100, "~"))
+    print("".center(100, "="))
+
+def display_end_banner():
+    title_text = "You've ended dirwatcher"
+    line1 = f'Have a good rest of your life'
+    spaced_text = ' %s ' % title_text
+    print(spaced_text.center(100, "="))
+    print((line1).center(100, "~"))
+    print("".center(100, "="))
+
+
 def dirwatcher(interval, magic, search_dir, file_type):
-    return check_for_magic(magic, search_dir, file_type)
+    running = True
+
+    display_start_banner(interval, magic, search_dir, file_type)
+
+    while running:
+        try:
+            new_files = check_for_magic(magic, search_dir, file_type)
+            print_difference(new_files)
+            time.sleep(interval)
+            continue
+        except KeyboardInterrupt as ki:
+            print("Stopped: ", repr(ki))
+            display_end_banner()
+            running = False
+        except EOFError as eofe:
+            print("Stopped: ", repr(eofe))
+            display_end_banner()
+            running = False
 
 
 def create_parser(*args, **kwargs):
@@ -43,6 +97,7 @@ def create_parser(*args, **kwargs):
     parser = argparse.ArgumentParser(
         description="Periodically check files for a certain string.")
     parser.add_argument("interval",
+                        type=int,
                         help="integer representing seconds between polls")
     parser.add_argument("magic",
                         help="text string to find in the directories")
