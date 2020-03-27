@@ -6,28 +6,36 @@ __author__ = "knmarvel"
 
 
 import argparse
-import sys
 import os
-from pathlib import Path
+
+old_files = {}
+new_files = {}
 
 
-def check_for_string(magic, search_dir, file_type):
-    files_with_magic = []
+def check_for_magic(magic, search_dir, file_type):
+    """Given a magic string, a directory, and a file type,
+    returns a dictionary of all files of the file type in
+    the directory that contain the string with the last line
+    of the file."""
+    f_w_magic = {}
     if os.path.exists(search_dir):
         for root, dirs, filenames in os.walk(search_dir):
             for filename in filenames:
-                if file_type in filename:
-                    with open(filename, "r") as file:
+                if filename.endswith(file_type):
+                    with open(root + "/" + filename, "r") as file:
                         file = file.read().splitlines()
                         for line in file:
                             if magic in line:
-                                path = Path(filename).parent.absolute()
-                                files_with_magic.append([str(path), file.index(line)])
-    return files_with_magic
+                                if filename in f_w_magic:
+                                    if f_w_magic[filename] < file.index(line):
+                                        f_w_magic[filename] = file.index(line)
+                                else:
+                                    f_w_magic[filename] = file.index(line)
+    return f_w_magic
 
 
 def dirwatcher(interval, magic, search_dir, file_type):
-    return check_for_string(magic, search_dir, file_type)
+    return check_for_magic(magic, search_dir, file_type)
 
 
 def create_parser(*args, **kwargs):
