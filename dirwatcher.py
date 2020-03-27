@@ -9,6 +9,7 @@ import argparse
 import os
 import time
 import datetime
+import signal
 
 old_files = {}
 
