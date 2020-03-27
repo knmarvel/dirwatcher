@@ -1,10 +1,21 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*pyc
+.pytest_cache*
 *$py.class
+
+# testing directories
+filesfortesting
+testingdir
+testdir
+test
 
 # C extensions
 *.so
+
+# VScode
+.vscode*
 
 # Distribution / packaging
 .Python

@@ -8,6 +8,7 @@ __author__ = "knmarvel"
 import argparse
 import os
 import time
+import datetime
 
 old_files = {}
 
@@ -18,19 +19,18 @@ def check_for_magic(magic, search_dir, file_type):
     the directory that contain the string with the last line
     of the file."""
     f_w_magic = {}
-    if os.path.exists(search_dir):
-        for root, dirs, filenames in os.walk(search_dir):
-            for filename in filenames:
-                if filename.endswith(file_type):
-                    with open(root + "/" + filename, "r") as file:
-                        file = file.read().splitlines()
-                        for line in file:
-                            if magic in line:
-                                if filename in f_w_magic:
-                                    if f_w_magic[filename] < file.index(line):
-                                        f_w_magic[filename] = file.index(line)
-                                else:
+    for root, dirs, filenames in os.walk(search_dir):
+        for filename in filenames:
+            if filename.endswith(file_type):
+                with open(root + "/" + filename, "r") as file:
+                    file = file.read().splitlines()
+                    for line in file:
+                        if magic in line:
+                            if filename in f_w_magic:
+                                if f_w_magic[filename] < file.index(line):
                                     f_w_magic[filename] = file.index(line)
+                            else:
+                                f_w_magic[filename] = file.index(line)
     return f_w_magic
 
 
@@ -54,16 +54,20 @@ def print_difference(new_files):
 
 
 def display_start_banner(interval, magic, search_dir, file_type):
+    """prints starting banner"""
     title_text = "Welcome to Kano's dirwatcher"
-    line1 = f'Every {interval} seconds, dirwatcher will tell you if'
-    line2 = f' "{magic}" is in any {file_type} files in directory "{search_dir}"'
+    line1 = f'every {interval} seconds, dirwatcher will tell you if "{magic}"'
+    line2 = f' is in any {file_type} files in directory "{search_dir}"'
     spaced_text = ' %s ' % title_text
     print(spaced_text.center(100, "="))
     print((line1 + line2).center(100, "~"))
+    print(f'Time started: {datetime.datetime.now()}')
     print("".center(100, "="))
 
+
 def display_end_banner():
-    title_text = "You've ended dirwatcher"
+    """prints ending banner"""
+    title_text = f"You've ended dirwatcher at {datetime.datetime.now()}"
     line1 = f'Have a good rest of your life'
     spaced_text = ' %s ' % title_text
     print(spaced_text.center(100, "="))
@@ -78,8 +82,11 @@ def dirwatcher(interval, magic, search_dir, file_type):
 
     while running:
         try:
-            new_files = check_for_magic(magic, search_dir, file_type)
-            print_difference(new_files)
+            if os.path.exists(search_dir):
+                new_files = check_for_magic(magic, search_dir, file_type)
+                print_difference(new_files)
+            else:
+                print("No such directory.")
             time.sleep(interval)
             continue
         except KeyboardInterrupt as ki:
