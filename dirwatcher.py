@@ -7,6 +7,7 @@ __author__ = "knmarvel"
 
 import argparse
 import datetime
+import logging
 import os
 import signal
 import sys
@@ -17,6 +18,12 @@ if sys.version_info[0] != 3:
 
 
 old_files = {}
+
+
+def logging_setup(type, message):
+    """Sets up log messages for the program"""
+    logging.basicConfig(format='%(asctime)s \n %(message)s', level=logging.INFO)
+    logging.info(message)
 
 
 def check_for_magic(magic, search_dir, file_type):
@@ -75,23 +82,21 @@ def print_difference(new_files):
 def display_start_banner(interval, magic, search_dir, file_type):
     """prints starting banner"""
     title_text = "Welcome to Kano's dirwatcher"
-    line1 = f'every {interval} seconds, dirwatcher will tell you if "{magic}"'
+    line1 = f'\nEvery {interval} seconds, dirwatcher will tell you if "{magic}"'
     line2 = f' is in any {file_type} files in directory "{search_dir}"'
-    spaced_text = ' %s ' % title_text
-    print(spaced_text.center(100, "="))
-    print((line1 + line2).center(100, "~"))
-    print(f'Time started: {datetime.datetime.now()}')
-    print("".center(100, "="))
+    time_line = f'\nTime started: {datetime.datetime.now()}'
+    end_line = "".center(100, "=")
+    text = title_text.center(100, "=") + line1 + line2 + time_line + "\n" + end_line
+    logging_setup("info", text)
 
 
 def display_end_banner():
     """prints ending banner"""
     title_text = f"You've ended dirwatcher at {datetime.datetime.now()}"
-    line1 = f'Have a good rest of your life'
-    spaced_text = ' %s ' % title_text
-    print(spaced_text.center(100, "="))
-    print((line1).center(100, "~"))
-    print("".center(100, "="))
+    title_text = ' %s ' % title_text
+    line1 = f'\nHave a wonderful day.'
+    message = title_text.center(100, "=") + line1 + "\n" +"".center(100, "=")
+    logging_setup("info", message)
 
 
 def dirwatcher(interval, magic, search_dir, file_type):
@@ -106,42 +111,45 @@ def dirwatcher(interval, magic, search_dir, file_type):
                 new_files = check_for_magic(magic, search_dir, file_type)
                 print_difference(new_files)
             else:
-                print("No such directory.")
+                logging_setup("info", "No such directory.")
             counter += 1
             if not counter % 5:
-                print(f"we've run {counter} cycles.")
+                logging_setup(counter, f"we've run {counter} cycles.")
             time.sleep(interval)
             continue
-        except Exception as e:
-            print("Stopped: ", repr(e))
+        except KeyboardInterrupt as k:
+            logging_setup("interrupt", "Stopped by " + repr(k))
             display_end_banner()
             running = False
-        
-        #### final exit point happens here
-        #### Log a message that we are shutting down
+        except Exception as e:
+            logging_setup("error", "Stopped by " + repr(e))
+            display_end_banner()
+            running = False
+
+        # final exit point happens here
+        # Log a message that we are shutting down
 
 
 def create_parser(*args, **kwargs):
     """Defines and provides help for commandline arguments"""
     parser = argparse.ArgumentParser(
         description="Periodically check files for a certain string.")
-    parser.add_argument("interval",
+    parser.add_argument('-dir',
+                        help="directory to watch")
+    parser.add_argument("-ext",
+                        help="file type to search")
+    parser.add_argument("int",
                         type=int,
+                        default=1,
                         help="integer representing seconds between polls")
     parser.add_argument("magic",
                         help="text string to find in the directories")
-    parser.add_argument('-d',
-                        help="directory to watch")
-    parser.add_argument("-t",
-                        help="file type to search")
     return parser.parse_args()
 
 
 def main():
     args = create_parser()
-    answer = dirwatcher(args.interval, args.magic, args.d, args.t)
-    print(answer)
-    return answer
+    dirwatcher(args.int, args.magic, args.dir, args.ext)
 
 
 if __name__ == "__main__":

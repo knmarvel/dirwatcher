@@ -9,7 +9,7 @@ __pycache__/
 filesfortesting
 testingdir
 testdir
-test
+test*
 
 
 # C extensions
