@@ -54,19 +54,21 @@ def check_for_add(new_files):
     for file in new_files:
         if file in old_files:
             if new_files[file] > old_files[file]:
-                print("Magic text found in later line in file",
-                      file, " at line ", new_files[file])
+                logline1 = f"Magic text found in file"
+                logline2 = f" {file} at line {new_files[file]}"
+                logging_setup("info", logline1 + logline2)
         else:
-            print("New file", file, "found with magic text at line ",
-                  new_files[file])
+            logline1 = f"Magic text found in file {file} found "
+            logline2 = f"with magic text at line {new_files[file]}."
+            logging_setup("info", logline1 + logline2)
 
 
 def check_for_delete(new_files):
-    """Prints a delete statement if a file with magic text is deleted."""
+    """Logs a delete statement if a file with magic text is deleted."""
     global old_files
     for file in old_files:
         if file not in new_files:
-            print("File", file, "deleted")
+            logging_setup("info", f"File {file} deleted")
 
 
 def print_difference(new_files):
@@ -95,13 +97,12 @@ def display_end_banner():
     title_text = f"You've ended dirwatcher at {datetime.datetime.now()}"
     title_text = ' %s ' % title_text
     line1 = f'\nHave a wonderful day.'
-    message = title_text.center(100, "=") + line1 + "\n" +"".center(100, "=")
+    message = title_text.center(100, "=") + line1 + "\n" + "".center(100, "=")
     logging_setup("info", message)
 
 
 def dirwatcher(interval, magic, search_dir, file_type):
     running = True
-    counter = 0
 
     display_start_banner(interval, magic, search_dir, file_type)
 
@@ -112,9 +113,6 @@ def dirwatcher(interval, magic, search_dir, file_type):
                 print_difference(new_files)
             else:
                 logging_setup("info", "No such directory.")
-            counter += 1
-            if not counter % 5:
-                logging_setup(counter, f"we've run {counter} cycles.")
             time.sleep(interval)
             continue
         except KeyboardInterrupt as k:
