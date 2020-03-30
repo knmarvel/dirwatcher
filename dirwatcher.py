@@ -17,12 +17,15 @@ if sys.version_info[0] != 3:
     raise Exception("This program requires python3 interpreter")
 
 
+#globals
 old_files = {}
+running = True
 
 
-def logging_setup(type, message):
+def logger(message):
     """Sets up log messages for the program"""
-    logging.basicConfig(format='%(asctime)s \n %(message)s', level=logging.INFO)
+    logging_format = '%(asctime)s \n %(message)s'
+    logging.basicConfig(format=logging_format, level=logging.INFO)
     logging.info(message)
 
 
@@ -56,11 +59,11 @@ def check_for_add(new_files):
             if new_files[file] > old_files[file]:
                 logline1 = f"Magic text found in file"
                 logline2 = f" {file} at line {new_files[file]}"
-                logging_setup("info", logline1 + logline2)
+                logger(logline1 + logline2)
         else:
             logline1 = f"Magic text found in file {file} found "
             logline2 = f"with magic text at line {new_files[file]}."
-            logging_setup("info", logline1 + logline2)
+            logger(logline1 + logline2)
 
 
 def check_for_delete(new_files):
@@ -68,7 +71,7 @@ def check_for_delete(new_files):
     global old_files
     for file in old_files:
         if file not in new_files:
-            logging_setup("info", f"File {file} deleted")
+            logger(f"File {file} deleted")
 
 
 def print_difference(new_files):
@@ -83,49 +86,55 @@ def print_difference(new_files):
 
 def display_start_banner(interval, magic, search_dir, file_type):
     """prints starting banner"""
-    title_text = "Welcome to Kano's dirwatcher"
-    line1 = f'\nEvery {interval} seconds, dirwatcher will tell you if "{magic}"'
+    title_text = "DIRWATCHER"
+    title_text = title_text.center(100, "=")
+    line = "Welcome to Kano's dirwatcher".center()
+    line1 = f'Every {interval} seconds, dirwatcher will tell you if "{magic}"'
     line2 = f' is in any {file_type} files in directory "{search_dir}"'
     time_line = f'\nTime started: {datetime.datetime.now()}'
     end_line = "".center(100, "=")
-    text = title_text.center(100, "=") + line1 + line2 + time_line + "\n" + end_line
-    logging_setup("info", text)
+    text = title_text + "\n" + line1 + line2 + time_line + "\n" + end_line
+    logger(text)
 
 
 def display_end_banner():
     """prints ending banner"""
     title_text = f"You've ended dirwatcher at {datetime.datetime.now()}"
     title_text = ' %s ' % title_text
+    title_text = title_text.center()
     line1 = f'\nHave a wonderful day.'
-    message = title_text.center(100, "=") + line1 + "\n" + "".center(100, "=")
-    logging_setup("info", message)
+    message = "".center(100, "=") + title_text + line1 + "\n" + "".center(100, "=")
+    logger(message)
+
+
+def receive_signal(sig_num, frame):
+    """HANDLER FOR TIGTERM AND SIGINT"""
+    global running
+    logger("Received " + signal.Signals(sig_num).name)
+    running = False
 
 
 def dirwatcher(interval, magic, search_dir, file_type):
-    running = True
-
     display_start_banner(interval, magic, search_dir, file_type)
-
+    global running
     while running:
         try:
             if os.path.exists(search_dir):
                 new_files = check_for_magic(magic, search_dir, file_type)
                 print_difference(new_files)
             else:
-                logging_setup("info", "No such directory.")
+                logger("No such directory.")
             time.sleep(interval)
             continue
         except KeyboardInterrupt as k:
-            logging_setup("interrupt", "Stopped by " + repr(k))
-            display_end_banner()
+            logger("Stopped by " + repr(k))
+            display_end_banner(repr(k))
             running = False
         except Exception as e:
-            logging_setup("error", "Stopped by " + repr(e))
-            display_end_banner()
+            logger("Stopped by " + repr(e))
+            display_end_banner(repr(e))
             running = False
-
-        # final exit point happens here
-        # Log a message that we are shutting down
+    display_end_banner("Exited program")
 
 
 def create_parser(*args, **kwargs):
