@@ -17,9 +17,10 @@ if sys.version_info[0] != 3:
     raise Exception("This program requires python3 interpreter")
 
 
-#globals
+# globals
 old_files = {}
 running = True
+start_time = time.time()
 
 
 def logger(message):
@@ -61,8 +62,8 @@ def check_for_add(new_files):
                 logline2 = f" {file} at line {new_files[file]}"
                 logger(logline1 + logline2)
         else:
-            logline1 = f"Magic text found in file {file} found "
-            logline2 = f"with magic text at line {new_files[file]}."
+            logline1 = f"Magic text found in file {file} "
+            logline2 = f"with at line {new_files[file]}."
             logger(logline1 + logline2)
 
 
@@ -85,56 +86,35 @@ def print_difference(new_files):
 
 
 def display_start_banner(interval, magic, search_dir, file_type):
-    """prints starting banner"""
-    title_text = "DIRWATCHER"
-    title_text = title_text.center(100, "=")
-    line = "Welcome to Kano's dirwatcher".center()
+    """logs starting banner"""
+    title_text = "DIRWATCHER".center(80, "=")
+    line = "\nWelcome to Kano's dirwatcher\n".center(80)
     line1 = f'Every {interval} seconds, dirwatcher will tell you if "{magic}"'
     line2 = f' is in any {file_type} files in directory "{search_dir}"'
-    time_line = f'\nTime started: {datetime.datetime.now()}'
-    end_line = "".center(100, "=")
-    text = title_text + "\n" + line1 + line2 + time_line + "\n" + end_line
-    logger(text)
+    time_line = f'\nTime started: {datetime.datetime.now()}\n'
+    end_line = "".center(80, "=")
+    message = title_text + line + line1 + line2 + time_line + end_line
+    logger(message)
 
 
-def display_end_banner():
-    """prints ending banner"""
-    title_text = f"You've ended dirwatcher at {datetime.datetime.now()}"
-    title_text = ' %s ' % title_text
-    title_text = title_text.center()
-    line1 = f'\nHave a wonderful day.'
-    message = "".center(100, "=") + title_text + line1 + "\n" + "".center(100, "=")
+def display_end_banner(reason):
+    """logs ending banner"""
+    line = f"You've ended dirwatcher at {datetime.datetime.now()}"
+    line1 = f" because {reason}"
+    line2 = f" after running {round(time.time() - start_time, 2)} seconds"
+    line3 = f'\nHave a wonderful day.'
+    line = line + line1 + line2 + line3
+    line = ' %s ' % line
+    line = line.center(80)
+    message = "".center(80, "=") + line + "\n" + "".center(80, "=")
     logger(message)
 
 
 def receive_signal(sig_num, frame):
-    """HANDLER FOR TIGTERM AND SIGINT"""
+    """Handler for SIGTERM, SIGQUIT, and SIGINT"""
     global running
-    logger("Received " + signal.Signals(sig_num).name)
+    logger("Stopped by " + signal.Signals(sig_num).name)
     running = False
-
-
-def dirwatcher(interval, magic, search_dir, file_type):
-    display_start_banner(interval, magic, search_dir, file_type)
-    global running
-    while running:
-        try:
-            if os.path.exists(search_dir):
-                new_files = check_for_magic(magic, search_dir, file_type)
-                print_difference(new_files)
-            else:
-                logger("No such directory.")
-            time.sleep(interval)
-            continue
-        except KeyboardInterrupt as k:
-            logger("Stopped by " + repr(k))
-            display_end_banner(repr(k))
-            running = False
-        except Exception as e:
-            logger("Stopped by " + repr(e))
-            display_end_banner(repr(e))
-            running = False
-    display_end_banner("Exited program")
 
 
 def create_parser(*args, **kwargs):
@@ -155,8 +135,38 @@ def create_parser(*args, **kwargs):
 
 
 def main():
+    """Long running program that monitors a directory's text files."""
+    global running
     args = create_parser()
-    dirwatcher(args.int, args.magic, args.dir, args.ext)
+    interval = args.int
+    magic = args.magic
+    search_dir = args.dir
+    file_type = args.ext
+
+    display_start_banner(interval, magic, search_dir, file_type)
+
+    signal.signal(signal.SIGINT, receive_signal)
+    signal.signal(signal.SIGTERM, receive_signal)
+    signal.signal(signal.SIGQUIT, receive_signal)
+
+    while running:
+        try:
+            if os.path.exists(search_dir):
+                new_files = check_for_magic(magic, search_dir, file_type)
+                print_difference(new_files)
+            else:
+                logger("No such directory.")
+            time.sleep(interval)
+            continue
+        except KeyboardInterrupt as k:
+            logger("Stopped by " + repr(k))
+            display_end_banner(repr(k))
+            running = False
+        except Exception as e:
+            logger("Stopped by " + repr(e))
+            display_end_banner(repr(e))
+            running = False
+    display_end_banner("your computer terminated the program")
 
 
 if __name__ == "__main__":
