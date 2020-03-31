@@ -30,7 +30,7 @@ def logger(message):
     logging.info(message)
 
 
-def check_for_magic(magic, search_dir, file_type):
+def check_for_magic(magic, search_dir, ext):
     """Given a magic string, a directory, and a file type,
     returns a dictionary of all files of the file type in
     the directory that contain the string with the last line
@@ -38,7 +38,7 @@ def check_for_magic(magic, search_dir, file_type):
     f_w_magic = {}
     for root, dirs, filenames in os.walk(search_dir):
         for filename in filenames:
-            if filename.endswith(file_type):
+            if filename.endswith(ext):
                 with open(root + "/" + filename, "r") as file:
                     file = file.read().splitlines()
                     for counter, line in enumerate(file):
@@ -52,7 +52,7 @@ def check_for_magic(magic, search_dir, file_type):
 
 
 def check_for_add(new_files):
-    """Prints a statement about files added with magic text
+    """Logs a statement about files added with magic text
     or files with magic text appended at a later line"""
     global old_files
     for file in new_files:
@@ -63,11 +63,11 @@ def check_for_add(new_files):
                 logger(logline1 + logline2)
         else:
             logline1 = f"Magic text found in file {file} "
-            logline2 = f"with at line {new_files[file]}."
+            logline2 = f"at line {new_files[file]}."
             logger(logline1 + logline2)
 
 
-def check_for_delete(new_files):
+def check_for_deletion(new_files):
     """Logs a delete statement if a file with magic text is deleted."""
     global old_files
     for file in old_files:
@@ -75,22 +75,22 @@ def check_for_delete(new_files):
             logger(f"File {file} deleted")
 
 
-def print_difference(new_files):
+def log_difference(new_files):
     """checks dictionary of currently found files against previously
     found files and prints any differences"""
     global old_files
     if new_files != old_files:
         check_for_add(new_files)
-        check_for_delete(new_files)
+        check_for_deletion(new_files)
         old_files = new_files
 
 
-def display_start_banner(interval, magic, search_dir, file_type):
+def display_start_banner(interval, magic, search_dir, ext):
     """logs starting banner"""
     title_text = "DIRWATCHER".center(80, "=")
-    line = "\nWelcome to Kano's dirwatcher\n".center(80)
-    line1 = f'Every {interval} seconds, dirwatcher will tell you if "{magic}"'
-    line2 = f' is in any {file_type} files in directory "{search_dir}"'
+    line = "\nWelcome to Kano's dirwatcher".center(80)
+    line1 = f'\nEvery {interval} seconds, dirwatcher will tell you if '
+    line2 = f'"{magic}" is in any {ext} files in directory "{search_dir}"'
     time_line = f'\nTime started: {datetime.datetime.now()}\n'
     end_line = "".center(80, "=")
     message = title_text + line + line1 + line2 + time_line + end_line
@@ -99,9 +99,9 @@ def display_start_banner(interval, magic, search_dir, file_type):
 
 def display_end_banner(reason):
     """logs ending banner"""
-    line = f"You've ended dirwatcher at {datetime.datetime.now()}"
-    line1 = f" because {reason}"
-    line2 = f" after running {round(time.time() - start_time, 2)} seconds"
+    line = f"\nDirwatcher ended at {datetime.datetime.now()}"
+    line1 = f" because \n{reason}"
+    line2 = f" after running {round(time.time() - start_time, 2)} seconds."
     line3 = f'\nHave a wonderful day.'
     line = line + line1 + line2 + line3
     line = ' %s ' % line
@@ -141,9 +141,9 @@ def main():
     interval = args.int
     magic = args.magic
     search_dir = args.dir
-    file_type = args.ext
+    ext = args.ext
 
-    display_start_banner(interval, magic, search_dir, file_type)
+    display_start_banner(interval, magic, search_dir, ext)
 
     signal.signal(signal.SIGINT, receive_signal)
     signal.signal(signal.SIGTERM, receive_signal)
@@ -152,10 +152,10 @@ def main():
     while running:
         try:
             if os.path.exists(search_dir):
-                new_files = check_for_magic(magic, search_dir, file_type)
-                print_difference(new_files)
+                new_files = check_for_magic(magic, search_dir, ext)
+                log_difference(new_files)
             else:
-                logger("No such directory.")
+                logger(f"No such directory as {search_dir}.")
             time.sleep(interval)
             continue
         except KeyboardInterrupt as k:
