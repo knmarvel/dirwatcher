@@ -1,9 +1,8 @@
-
 ![Kano's logo](https://i.imgur.com/Yc5nxbI.png) 
-![Directory](https://imgur.com/YtC7fW5.png)
 
 # Dirwatcher
 Long running program that monitors the text of a directory's files. 
+![Directory](https://imgur.com/YtC7fW5.png)
 
 ## Overview
 An assignment from [Kenzie Academy](https://kenzie.academy). Here are the goals for this program: 
@@ -54,3 +53,6 @@ where
     """Handler for SIGTERM, SIGQUIT, and SIGINT"""
 - create_parser(*args, **kwargs):
     """Defines and provides help for commandline arguments""
+
+## Author
+[Kano Marvel](https://github.com/knmarvel)
